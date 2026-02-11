@@ -6,22 +6,35 @@ class CounterController extends GetxController {
   var step = 1.obs;
   var history = <String>[].obs;
 
-  void setStep(int value) => step.value = value;
+  // Controller untuk sinkronisasi teks di TextField
+  final stepController = TextEditingController();
+
+  @override
+  void onInit() {
+    super.onInit();
+    stepController.text = step.value.toString();
+  }
+
+  void setStep(String value) {
+    int parsedValue = int.tryParse(value) ?? 1;
+    step.value = parsedValue;
+  }
 
   void increment() {
     counter.value += step.value;
-    _addLog("+${step.value}");
+    _addLog("+ Tambah ${step.value}");
   }
 
   void decrement() {
     counter.value -= step.value;
-    _addLog("-${step.value}");
+    _addLog("- Kurang ${step.value}");
   }
 
   void reset() {
     counter.value = 0;
     step.value = 1;
     history.clear();
+    stepController.text = "1";
 
     Get.snackbar(
       "Reset Berhasil",
@@ -29,7 +42,7 @@ class CounterController extends GetxController {
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.black87,
       colorText: Colors.white,
-      margin: EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
     );
   }
 
@@ -40,5 +53,11 @@ class CounterController extends GetxController {
     if (history.length > 5) {
       history.removeLast();
     }
+  }
+
+  @override
+  void onClose() {
+    stepController.dispose();
+    super.onClose();
   }
 }

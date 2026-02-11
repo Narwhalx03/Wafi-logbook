@@ -5,15 +5,18 @@ import 'counter_controller.dart';
 class CounterView extends StatelessWidget {
   final CounterController controller = Get.put(CounterController());
 
+  CounterView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("LogBook Counter - Wafi"),
+        title: const Text("LogBook Counter - Wafi"),
         backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: () {
               Get.defaultDialog(
                 title: "Konfirmasi Reset",
@@ -37,38 +40,55 @@ class CounterView extends StatelessWidget {
             Obx(
               () => Text(
                 "${controller.counter}",
-                style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 80,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
-              decoration: InputDecoration(
+              controller: controller.stepController,
+              decoration: const InputDecoration(
                 labelText: "Masukkan Nilai Step",
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.bolt),
               ),
               keyboardType: TextInputType.number,
-              onChanged: (value) =>
-                  controller.setStep(int.tryParse(value) ?? 1),
+              onChanged: (value) => controller.setStep(value),
             ),
-            SizedBox(height: 30),
-            Align(
+            const SizedBox(height: 30),
+            const Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 "5 Aktivitas Terakhir:",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            Divider(),
+            const Divider(),
             Expanded(
               child: Obx(
                 () => ListView.builder(
                   itemCount: controller.history.length,
                   itemBuilder: (context, index) {
+                    String logEntry = controller.history[index];
+                    bool isAddition = logEntry.startsWith("+");
+
                     return Card(
                       child: ListTile(
-                        leading: Icon(Icons.history, color: Colors.grey),
-                        title: Text(controller.history[index]),
+                        leading: Icon(
+                          isAddition ? Icons.add_circle : Icons.remove_circle,
+                          color: isAddition ? Colors.green : Colors.red,
+                        ),
+                        title: Text(
+                          logEntry,
+                          style: TextStyle(
+                            color: isAddition
+                                ? Colors.green[800]
+                                : Colors.red[800],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     );
                   },
@@ -84,14 +104,15 @@ class CounterView extends StatelessWidget {
           FloatingActionButton(
             heroTag: "btn1",
             onPressed: () => controller.increment(),
-            child: Icon(Icons.add),
+            child: const Icon(Icons.add),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           FloatingActionButton(
             heroTag: "btn2",
             onPressed: () => controller.decrement(),
-            child: Icon(Icons.remove),
             backgroundColor: Colors.redAccent,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.remove),
           ),
         ],
       ),
