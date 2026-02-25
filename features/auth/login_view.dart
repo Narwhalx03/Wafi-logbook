@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:logbook_app_001/features/auth/login_controller.dart';
-import 'package:logbook_app_001/features/logbook/counter_view.dart';
+// 1. Tambahkan import log_view agar bisa dikenali
+import 'package:logbook_app_001/features/logbook/log_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -31,9 +32,11 @@ class _LoginViewState extends State<LoginView> {
 
     if (error == null) {
       if (!mounted) return;
+
+      // 2. Ubah Navigasi ke LogPage
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CounterView(username: user)),
+        MaterialPageRoute(builder: (context) => const LogPage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +98,6 @@ class _LoginViewState extends State<LoginView> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                // PERBAIKAN: Hanya gunakan satu child
                 child: Text(
                   _isButtonDisabled ? "TERKUNCI (10s)" : "MASUK",
                   style: const TextStyle(

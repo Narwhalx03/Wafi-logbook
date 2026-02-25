@@ -29,72 +29,103 @@ class _OnboardingViewState extends State<OnboardingView> {
     },
   ];
 
-  void _nextStep() {
-    if (_step < 3) {
-      setState(() => _step++);
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginView()),
-      );
-    }
+  void _finishOnboarding() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginView()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(30.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.network(_onboardingData[_step - 1]["img"]!, height: 250),
-              const SizedBox(height: 40),
-              Text(
-                _onboardingData[_step - 1]["title"]!,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+        child: Stack(
+          // Gunakan Stack agar bisa menaruh tombol Skip di atas
+          children: [
+            if (_step < 3)
+              Positioned(
+                top: 20,
+                right: 20,
+                child: TextButton(
+                  onPressed: _finishOnboarding,
+                  child: const Text(
+                    "Lewati",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
               ),
-              const SizedBox(height: 15),
-              Text(
-                _onboardingData[_step - 1]["desc"]!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              const SizedBox(height: 50),
-              Row(
+            Padding(
+              padding: const EdgeInsets.all(30.0),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  3,
-                  (index) => Container(
-                    margin: const EdgeInsets.all(4),
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _step == (index + 1)
-                          ? Colors.blueAccent
-                          : Colors.grey[300],
+                children: [
+                  // Gunakan AnimatedSwitcher agar transisi gambar lebih halus
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: Image.network(
+                      _onboardingData[_step - 1]["img"]!,
+                      key: ValueKey<int>(_step),
+                      height: 250,
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _nextStep,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                  const SizedBox(height: 40),
+                  Text(
+                    _onboardingData[_step - 1]["title"]!,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                child: Text(_step == 3 ? "MULAI LOGIN" : "LANJUT"),
+                  const SizedBox(height: 15),
+                  Text(
+                    _onboardingData[_step - 1]["desc"]!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 50),
+                  // Indikator Titik
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      3,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.all(4),
+                        width: _step == (index + 1)
+                            ? 20
+                            : 10, // Titik aktif lebih panjang
+                        height: 10,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: _step == (index + 1)
+                              ? Colors.blueAccent
+                              : Colors.grey[300],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_step < 3) {
+                        setState(() => _step++);
+                      } else {
+                        _finishOnboarding();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(200, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: Text(_step == 3 ? "MULAI LOGIN" : "LANJUT"),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
