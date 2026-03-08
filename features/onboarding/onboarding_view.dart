@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:logbook_app_001/features/auth/login_view.dart';
+import 'package:logbook_app_029/features/auth/login_view.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
@@ -41,7 +41,6 @@ class _OnboardingViewState extends State<OnboardingView> {
     return Scaffold(
       body: SafeArea(
         child: Stack(
-          // Gunakan Stack agar bisa menaruh tombol Skip di atas
           children: [
             if (_step < 3)
               Positioned(
@@ -60,7 +59,6 @@ class _OnboardingViewState extends State<OnboardingView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Gunakan AnimatedSwitcher agar transisi gambar lebih halus
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: Image.network(
@@ -92,9 +90,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.all(4),
-                        width: _step == (index + 1)
-                            ? 20
-                            : 10, // Titik aktif lebih panjang
+                        width: _step == (index + 1) ? 20 : 10,
                         height: 10,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(5),

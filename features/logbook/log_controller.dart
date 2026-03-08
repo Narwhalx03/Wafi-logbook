@@ -1,12 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'models/log_model.dart';
+import 'package:logbook_app_029/services/mongo_service.dart';
+import 'package:logbook_app_029/helpers/log_helper.dart';
 
 class LogController {
   final ValueNotifier<List<LogModel>> _allLogs = ValueNotifier([]);
   final ValueNotifier<List<LogModel>> filteredLogs = ValueNotifier([]);
-  static const String _storageKey = 'user_logs_data';
 
   LogController() {
     loadFromDisk();
@@ -22,54 +21,111 @@ class LogController {
     }
   }
 
-  void addLog(String title, String desc, String category) {
+  Future<void> addLog(String title, String desc, String category) async {
     final newLog = LogModel(
       title: title,
       description: desc,
       category: category,
       date: DateTime.now().toString().split('.')[0],
     );
-    _allLogs.value = [..._allLogs.value, newLog];
-    filterLogs('');
-    saveToDisk();
-  }
 
-  void removeLog(LogModel log) {
-    _allLogs.value = _allLogs.value.where((item) => item != log).toList();
-    filterLogs('');
-    saveToDisk();
-  }
+    try {
+      await MongoService().insertLog(newLog);
 
-  void updateLog(LogModel oldLog, String title, String desc, String category) {
-    final index = _allLogs.value.indexOf(oldLog);
-    if (index != -1) {
-      _allLogs.value[index] = LogModel(
-        title: title,
-        description: desc,
-        category: category,
-        date: DateTime.now().toString().split('.')[0],
-      );
-      _allLogs.value = List.from(_allLogs.value);
+      _allLogs.value = [..._allLogs.value, newLog];
       filterLogs('');
-      saveToDisk();
+
+      await LogHelper.writeLog(
+        "SUCCESS: Data '${newLog.title}' tersimpan di Cloud",
+        source: "log_controller.dart",
+      );
+    } catch (e) {
+      await LogHelper.writeLog(
+        "ERROR: Gagal tambah data ke Cloud - $e",
+        level: 1,
+        source: "log_controller.dart",
+      );
     }
   }
 
-  Future<void> saveToDisk() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encodedData = jsonEncode(
-      _allLogs.value.map((e) => e.toMap()).toList(),
+  Future<void> removeLog(LogModel log) async {
+    if (log.id == null) return;
+
+    try {
+      await MongoService().deleteLog(log.id!);
+      _allLogs.value = _allLogs.value
+          .where((item) => item.id != log.id)
+          .toList();
+      filterLogs('');
+
+      await LogHelper.writeLog(
+        "SUCCESS: Data berhasil dihapus dari Cloud",
+        source: "log_controller.dart",
+      );
+    } catch (e) {
+      await LogHelper.writeLog(
+        "ERROR: Gagal hapus data - $e",
+        level: 1,
+        source: "log_controller.dart",
+      );
+    }
+  }
+
+  Future<void> updateLog(
+    LogModel oldLog,
+    String title,
+    String desc,
+    String category,
+  ) async {
+    if (oldLog.id == null) return;
+
+    final updatedLog = LogModel(
+      id: oldLog.id,
+      title: title,
+      description: desc,
+      category: category,
+      date: DateTime.now().toString().split('.')[0],
     );
-    await prefs.setString(_storageKey, encodedData);
+
+    try {
+      await MongoService().updateLog(updatedLog);
+
+      final index = _allLogs.value.indexWhere((item) => item.id == oldLog.id);
+      if (index != -1) {
+        _allLogs.value[index] = updatedLog;
+        _allLogs.value = List.from(_allLogs.value);
+        filterLogs('');
+      }
+
+      await LogHelper.writeLog(
+        "SUCCESS: Sinkronisasi Update Berhasil",
+        source: "log_controller.dart",
+      );
+    } catch (e) {
+      await LogHelper.writeLog(
+        "ERROR: Gagal update Cloud - $e",
+        level: 1,
+        source: "log_controller.dart",
+      );
+    }
   }
 
   Future<void> loadFromDisk() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? data = prefs.getString(_storageKey);
-    if (data != null) {
-      final List decoded = jsonDecode(data);
-      _allLogs.value = decoded.map((e) => LogModel.fromMap(e)).toList();
-      filteredLogs.value = _allLogs.value;
+    try {
+      final cloudData = await MongoService().getLogs();
+      _allLogs.value = cloudData;
+      filteredLogs.value = cloudData;
+
+      await LogHelper.writeLog(
+        "SUCCESS: Data berhasil dimuat dari MongoDB Atlas",
+        source: "log_controller.dart",
+      );
+    } catch (e) {
+      await LogHelper.writeLog(
+        "ERROR: Gagal mengambil data Cloud - $e",
+        level: 1,
+        source: "log_controller.dart",
+      );
     }
   }
 }
