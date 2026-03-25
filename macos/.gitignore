@@ -1,0 +1,49 @@
+# Flutter-related
+**/Flutter/ephemeral/
+**/Pods/
+
+# Xcode-related
+**/dgph
+**/xcuserdata/
+
+# Dependency directories
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Hive generated adapters 
+# File ini bisa di-generate ulang dengan build_runner
+*.g.dart
+
+# Database and Local Cache 
+# Mencegah data biner lokal terunggah ke server
+*.hive
+*.lock
+
+# security environment files 
+.env
+.env.*
+
+# Android specific
+android/**/key.properties
+android/local.properties
+android/app/src/main/res/raw/google_services.json
+
+# iOS specific
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+DerivedData/
+
+# IDE specific
+.idea/
+.vscode/
+*.iml
+*.swp
+*.lock
+
+# OS specific
+.DS_Store
+Thumbs.db
